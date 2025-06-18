@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Online Blood & Organ Donation Platform</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #f8b500, #fceabb);
+      margin: 0; padding: 0;
+    }
+    header {
+      background-color: #e65100;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      background-color: #ff9800;
+      padding: 10px;
+    }
+    nav a {
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    section {
+      padding: 20px;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      max-width: 400px;
+      margin: auto;
+      background: #fff3e0;
+      padding: 20px;
+      border-radius: 10px;
+    }
+    h2 {
+      text-align: center;
+    }
+    input, select, button, textarea {
+      margin: 10px 0;
+      padding: 10px;
+    }
+    .donor-list, .doctor-list, .request-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+    .donor-card, .doctor-card, .request-card {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      width: 200px;
+    }
+    #mainApp { display: none; }
+    .stats {
+      display: flex;
+      justify-content: space-around;
+      background: #ffe0b2;
+      padding: 15px;
+      border-radius: 10px;
+      margin: 10px auto;
+      max-width: 600px;
+    }
+    #feedbackList {
+      max-width: 400px;
+      margin: 20px auto;
+      background: #fff3e0;
+      padding: 10px;
+      border-radius: 10px;
+    }
+    #feedbackList p {
+      background: white;
+      padding: 8px;
+      margin: 5px 0;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <header><h1>Online Blood & Organ Donation Platform</h1></header>
+
+  <section id="loginPage">
+    <h2>Login</h2>
+    <form id="loginForm">
+      <input type="text" id="loginUsername" placeholder="Username" required>
+      <input type="password" id="loginPassword" placeholder="Password" required>
+      <button type="submit">Login</button>
+      <p>Don't have an account? <a href="#" onclick="showSignup()">Signup</a></p>
+    </form>
+  </section>
+
+  <section id="signupPage" style="display:none;">
+    <h2>Signup</h2>
+    <form id="signupForm">
+      <input type="text" id="signupUsername" placeholder="Username" required>
+      <input type="password" id="signupPassword" placeholder="Password" required>
+      <button type="submit">Signup</button>
+      <p>Already have an account? <a href="#" onclick="showLogin()">Login</a></p>
+    </form>
+  </section>
+
+  <div id="mainApp">
+    <nav>
+      <a onclick="showSection('register')">Register</a>
+      <a onclick="showSection('search')">Search Donor</a>
+      <a onclick="showSection('doctors')">Doctors</a>
+      <a onclick="showSection('request')">Request</a>
+      <a onclick="showSection('helpline')">Helpline</a>
+      <a onclick="showSection('feedback')">Feedback</a>
+      <a onclick="logout()">Logout</a>
+    </nav>
+
+    <section class="stats">
+      <div>Total Donors: <span id="totalDonors">0</span></div>
+      <div>Total Requests: <span id="totalRequests">0</span></div>
+    </section>
+
+    <section id="register">
+      <h2>Register as Donor</h2>
+      <form id="donorForm">
+        <input type="text" id="name" placeholder="Full Name" required>
+        <input type="text" id="city" placeholder="City" required>
+        <select id="bloodGroup" required>
+          <option value="">Select Blood Group</option>
+          <option>A+</option><option>A-</option>
+          <option>B+</option><option>B-</option>
+          <option>O+</option><option>O-</option>
+          <option>AB+</option><option>AB-</option>
+        </select>
+        <select id="organ">
+          <option value="">Select Organ (Optional)</option>
+          <option>Kidney</option><option>Liver</option><option>Heart</option><option>Lung</option>
+        </select>
+        <input type="text" id="contact" placeholder="Contact Number" required>
+        <button type="submit">Register</button>
+      </form>
+    </section>
+
+    <section id="search">
+      <h2>Search Donor</h2>
+      <input type="text" id="searchCity" placeholder="Enter City">
+      <select id="searchBloodGroup">
+        <option value="">Select Blood Group</option>
+        <option>A+</option><option>A-</option>
+        <option>B+</option><option>B-</option>
+        <option>O+</option><option>O-</option>
+        <option>AB+</option><option>AB-</option>
+      </select>
+      <select id="searchOrgan">
+        <option value="">Select Organ</option>
+        <option>Kidney</option><option>Liver</option><option>Heart</option><option>Lung</option>
+      </select>
+      <button onclick="searchDonors()">Search</button>
+      <div class="donor-list" id="donorList"></div>
+    </section>
+
+    <section id="doctors">
+      <h2>Available Doctors</h2>
+      <div class="doctor-list" id="doctorList"></div>
+    </section>
+
+    <section id="request">
+      <h2>Request Blood/Organ</h2>
+      <form id="requestForm">
+        <input type="text" id="reqName" placeholder="Your Name" required>
+        <input type="text" id="reqCity" placeholder="City" required>
+        <select id="reqBloodGroup" required>
+          <option value="">Select Blood Group</option>
+          <option>A+</option><option>A-</option>
+          <option>B+</option><option>B-</option>
+          <option>O+</option><option>O-</option>
+          <option>AB+</option><option>AB-</option>
+        </select>
+        <select id="reqOrgan">
+          <option value="">Select Organ (Optional)</option>
+          <option>Kidney</option><option>Liver</option><option>Heart</option><option>Lung</option>
+        </select>
+        <input type="text" id="reqContact" placeholder="Contact Number" required>
+        <button type="submit">Submit Request</button>
+      </form>
+      <h3>Requests List</h3>
+      <div class="request-list" id="requestList"></div>
+    </section>
+
+    <section id="helpline">
+      <h2>Emergency Helpline</h2>
+      <ul>
+        <li>National Emergency Number: 112</li>
+        <li>Blood Helpline: 104</li>
+        <li>Nearest Hospital: <a href="https://www.google.com/maps/search/hospital" target="_blank">View on Map</a></li>
+      </ul>
+    </section>
+
+    <section id="feedback">
+      <h2>Feedback</h2>
+      <form onsubmit="submitFeedback(event)">
+        <textarea id="feedbackText" placeholder="Your Feedback..." required></textarea>
+        <button type="submit">Submit</button>
+      </form>
+      <div id="feedbackList"></div>
+    </section>
+  </div>
+
+  <script>
+    const loginPage = document.getElementById('loginPage');
+    const signupPage = document.getElementById('signupPage');
+    const mainApp = document.getElementById('mainApp');
+    const stats = document.querySelector('.stats');
+
+    function showSignup() { loginPage.style.display = 'none'; signupPage.style.display = 'block'; }
+    function showLogin() { signupPage.style.display = 'none'; loginPage.style.display = 'block'; }
+    function logout() { location.reload(); }
+
+    function showSection(id) {
+      document.querySelectorAll('section').forEach(sec => sec.style.display = 'none');
+      stats.style.display = 'flex';
+      document.getElementById(id).style.display = 'block';
+    }
+
+    document.getElementById('signupForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const user = {
+        username: signupUsername.value,
+        password: signupPassword.value
+      };
+      localStorage.setItem('user', JSON.stringify(user));
+      alert('Signup successful! Please login.');
+      showLogin();
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (user && user.username === loginUsername.value && user.password === loginPassword.value) {
+        alert('Login successful!');
+        loginPage.style.display = 'none';
+        signupPage.style.display = 'none';
+        mainApp.style.display = 'block';
+        loadDoctors();
+        loadRequests();
+        loadFeedbacks();
+        updateStats();
+        showSection('register');
+      } else alert('Invalid credentials!');
+    });
+
+    document.getElementById('donorForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const donor = {
+        name: name.value,
+        city: city.value,
+        bloodGroup: bloodGroup.value,
+        organ: organ.value,
+        contact: contact.value
+      };
+      const donors = JSON.parse(localStorage.getItem('donors')) || [];
+      donors.push(donor);
+      localStorage.setItem('donors', JSON.stringify(donors));
+      alert('Donor Registered!');
+      e.target.reset();
+      updateStats();
+    });
+
+    function searchDonors() {
+      const city = searchCity.value.toLowerCase();
+      const blood = searchBloodGroup.value;
+      const organVal = searchOrgan.value;
+      const donors = JSON.parse(localStorage.getItem('donors')) || [];
+      const results = donors.filter(d => 
+        d.city.toLowerCase().includes(city) &&
+        (!blood || d.bloodGroup === blood) &&
+        (!organVal || d.organ === organVal)
+      );
+      donorList.innerHTML = results.length ? results.map(d => `
+        <div class='donor-card'>
+          <h3>${d.name}</h3>
+          <p>City: ${d.city}</p>
+          <p>Blood: ${d.bloodGroup}</p>
+          <p>Organ: ${d.organ || 'N/A'}</p>
+          <p>Contact: ${d.contact}</p>
+        </div>`).join('') : '<p>No donors found.</p>';
+    }
+
+    function loadDoctors() {
+      const doctors = [
+        {name:'Dr. Kumar', speciality:'Cardiologist', contact:'9876543210', available:'Yes'},
+        {name:'Dr. Reddy', speciality:'Nephrologist', contact:'8765432109', available:'No'},
+        {name:'Dr. Sharma', speciality:'Hepatologist', contact:'7654321098', available:'Yes'}
+      ];
+      doctorList.innerHTML = doctors.map(doc => `
+        <div class='doctor-card'>
+          <h3>${doc.name}</h3>
+          <p>Speciality: ${doc.speciality}</p>
+          <p>Contact: ${doc.contact}</p>
+          <p>Available: ${doc.available}</p>
+        </div>`).join('');
+    }
+
+    document.getElementById('requestForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const req = {
+        name: reqName.value,
+        city: reqCity.value,
+        bloodGroup: reqBloodGroup.value,
+        organ: reqOrgan.value,
+        contact: reqContact.value
+      };
+      const requests = JSON.parse(localStorage.getItem('requests')) || [];
+      requests.push(req);
+      localStorage.setItem('requests', JSON.stringify(requests));
+      alert('Request submitted!');
+      e.target.reset();
+      loadRequests();
+      updateStats();
+    });
+
+    function loadRequests() {
+      const requests = JSON.parse(localStorage.getItem('requests')) || [];
+      requestList.innerHTML = requests.map(r => `
+        <div class='request-card'>
+          <h3>${r.name}</h3>
+          <p>City: ${r.city}</p>
+          <p>Blood: ${r.bloodGroup}</p>
+          <p>Organ: ${r.organ || 'N/A'}</p>
+          <p>Contact: ${r.contact}</p>
+        </div>`).join('');
+    }
+
+    function submitFeedback(e) {
+      e.preventDefault();
+      const fb = feedbackText.value;
+      const feedbacks = JSON.parse(localStorage.getItem('feedbacks')) || [];
+      feedbacks.push(fb);
+      localStorage.setItem('feedbacks', JSON.stringify(feedbacks));
+      alert('Thanks for your feedback!');
+      feedbackText.value = '';
+      loadFeedbacks(); // Immediately show all feedbacks
+    }
+
+    function loadFeedbacks() {
+      const feedbacks = JSON.parse(localStorage.getItem('feedbacks')) || [];
+      feedbackList.innerHTML = feedbacks.map(f => `<p>${f}</p>`).join('');
+    }
+
+    function updateStats() {
+      totalDonors.textContent = (JSON.parse(localStorage.getItem('donors')) || []).length;
+      totalRequests.textContent = (JSON.parse(localStorage.getItem('requests')) || []).length;
+    }
+
+    window.onload = () => {
+      updateStats();
+      loadRequests();
+      loadFeedbacks();
+    };
+  </script>
+</body>
+</html>
