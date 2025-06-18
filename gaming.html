@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Memory Game with Login, Multiplayer & Room Code</title>
+  <style>
+    body {
+      background-color: pink;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding-top: 20px;
+    }
+    #loginPage, #modePage, #gamePage, #onlinePage, #waitPage {
+      display: none;
+    }
+    input, button {
+      padding: 8px;
+      margin: 5px;
+      font-size: 16px;
+    }
+    #game-board {
+      width: 400px;
+      margin: 20px auto;
+      display: grid;
+      grid-template-columns: repeat(6, 60px);
+      grid-gap: 8px;
+    }
+    .card {
+      width: 60px;
+      height: 60px;
+      background-color: #333;
+      color: white;
+      font-size: 30px;
+      line-height: 60px;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: transform 0.3s;
+    }
+    .flipped {
+      background-color: #fff;
+      color: black;
+      transform: rotateY(180deg);
+    }
+  </style>
+</head>
+<body>
+
+<h1>Memory Matching Game</h1>
+
+<!-- Login Page -->
+<div id="loginPage">
+  <h2>Login / Sign Up</h2>
+  <input type="text" id="username" placeholder="Username"><br>
+  <input type="password" id="password" placeholder="Password"><br>
+  <button onclick="signUp()">Sign Up</button>
+  <button onclick="signIn()">Sign In</button>
+  <p id="loginMsg"></p>
+</div>
+
+<!-- Mode Selection Page -->
+<div id="modePage">
+  <h2>Select Game Mode</h2>
+  <button onclick="startSinglePlayer()">Single Player</button>
+  <button onclick="startOfflineMultiplayer()">Offline Multiplayer</button>
+  <button onclick="startOnlineMultiplayer()">Online Multiplayer</button>
+</div>
+
+<!-- Online Multiplayer Room Code Page -->
+<div id="onlinePage">
+  <h2>Online Multiplayer</h2>
+  <button onclick="createRoom()">Create Room</button><br><br>
+  <input type="text" id="roomCodeInput" placeholder="Enter Room Code"><br>
+  <button onclick="joinRoom()">Join Room</button>
+  <p id="roomMsg"></p>
+  <button onclick="backToMode()">Back</button>
+</div>
+
+<!-- Waiting Page (Simulate waiting for another player) -->
+<div id="waitPage">
+  <h2>Waiting for another player to join...</h2>
+  <p>Your Room Code: <span id="showRoomCode"></span></p>
+</div>
+
+<!-- Game Page -->
+<div id="gamePage">
+  <h2>Level: <span id="level">1</span></h2>
+  <p id="playerInfo"></p>
+  <div id="game-board"></div>
+  <p id="levelMsg"></p>
+  <button onclick="logout()">Logout</button>
+</div>
+
+<script>
+  const loginPage = document.getElementById('loginPage');
+  const modePage = document.getElementById('modePage');
+  const onlinePage = document.getElementById('onlinePage');
+  const waitPage = document.getElementById('waitPage');
+  const gamePage = document.getElementById('gamePage');
+  const levelSpan = document.getElementById('level');
+  const levelMsg = document.getElementById('levelMsg');
+  const playerInfo = document.getElementById('playerInfo');
+  let level = 1;
+  let mode = 'single';
+  let playerTurn = 1;
+  let scores = {1: 0, 2: 0};
+  let roomCode = null;
+  let isRoomOwner = false;
+
+  loginPage.style.display = 'block';
+
+  function signUp() {
+    const uname = document.getElementById('username').value;
+    const pass = document.getElementById('password').value;
+    if (uname && pass) {
+      localStorage.setItem(uname, pass);
+      document.getElementById('loginMsg').innerText = "Sign Up Successful!";
+    } else {
+      document.getElementById('loginMsg').innerText = "Please enter both fields.";
+    }
+  }
+
+  function signIn() {
+    const uname = document.getElementById('username').value;
+    const pass = document.getElementById('password').value;
+    if (localStorage.getItem(uname) === pass) {
+      loginPage.style.display = 'none';
+      modePage.style.display = 'block';
+    } else {
+      document.getElementById('loginMsg').innerText = "Invalid Credentials!";
+    }
+  }
+
+  function logout() {
+    location.reload();
+  }
+
+  function startSinglePlayer() {
+    mode = 'single';
+    modePage.style.display = 'none';
+    gamePage.style.display = 'block';
+    startGame();
+  }
+
+  function startOfflineMultiplayer() {
+    mode = 'offline-multi';
+    playerTurn = 1;
+    scores = {1: 0, 2: 0};
+    modePage.style.display = 'none';
+    gamePage.style.display = 'block';
+    startGame();
+  }
+
+  function startOnlineMultiplayer() {
+    modePage.style.display = 'none';
+    onlinePage.style.display = 'block';
+  }
+
+  function createRoom() {
+    roomCode = Math.floor(100000 + Math.random() * 900000).toString();
+    isRoomOwner = true;
+    onlinePage.style.display = 'none';
+    waitPage.style.display = 'block';
+    document.getElementById('showRoomCode').innerText = roomCode;
+  }
+
+  function joinRoom() {
+    const enteredCode = document.getElementById('roomCodeInput').value;
+    if (enteredCode === roomCode && !isRoomOwner) {
+      // Simulate that both players are now in room
+      onlinePage.style.display = 'none';
+      mode = 'online-multi';
+      gamePage.style.display = 'block';
+      startGame();
+    } else if (enteredCode === "") {
+      document.getElementById('roomMsg').innerText = "Enter a room code!";
+    } else if (enteredCode !== roomCode) {
+      document.getElementById('roomMsg').innerText = "Invalid Room Code!";
+    } else {
+      document.getElementById('roomMsg').innerText = "Cannot join your own room!";
+    }
+  }
+
+  function backToMode() {
+    onlinePage.style.display = 'none';
+    modePage.style.display = 'block';
+  }
+
+  // Simulate other player joining
+  setInterval(() => {
+    if (waitPage.style.display === 'block' && isRoomOwner) {
+      waitPage.style.display = 'none';
+      mode = 'online-multi';
+      gamePage.style.display = 'block';
+      startGame();
+    }
+  }, 5000); // Auto start game after 5 seconds to simulate join
+
+  function startGame() {
+    levelSpan.innerText = level;
+    const emojisList = ['🍎','🍌','🍒','🍇','🍉','🍍','🥝','🍓','🍑','🥥','🍈'];
+    let totalPairs = level + 1;
+    let selectedEmojis = emojisList.slice(0, totalPairs);
+    let gameEmojis = [...selectedEmojis, ...selectedEmojis];
+    gameEmojis.sort(() => 0.5 - Math.random());
+
+    const board = document.getElementById('game-board');
+    board.innerHTML = '';
+    let firstCard = null, secondCard = null, lockBoard = false, matched = 0;
+
+    if (mode === 'offline-multi') {
+      playerInfo.innerText = `Player ${playerTurn}'s Turn | P1: ${scores[1]} P2: ${scores[2]}`;
+    } else if (mode === 'online-multi') {
+      playerInfo.innerText = `Online Room: ${roomCode}`;
+    } else {
+      playerInfo.innerText = '';
+    }
+
+    gameEmojis.forEach((emoji) => {
+      const card = document.createElement('div');
+      card.classList.add('card');
+      card.dataset.emoji = emoji;
+      card.innerHTML = '?';
+      board.appendChild(card);
+
+      card.addEventListener('click', () => {
+        if (lockBoard || card === firstCard || card.classList.contains('flipped')) return;
+
+        card.innerHTML = emoji;
+        card.classList.add('flipped');
+
+        if (!firstCard) {
+          firstCard = card;
+        } else {
+          secondCard = card;
+          lockBoard = true;
+
+          if (firstCard.dataset.emoji === secondCard.dataset.emoji) {
+            matched += 2;
+
+            if (mode === 'offline-multi') {
+              scores[playerTurn]++;
+              levelMsg.innerText = `Player ${playerTurn} scores! P1: ${scores[1]} P2: ${scores[2]}`;
+            }
+
+            firstCard = secondCard = null;
+            lockBoard = false;
+
+            if (matched === gameEmojis.length) {
+              if (level < 10) {
+                level++;
+                levelMsg.innerText += " | Level Completed! Loading next level...";
+                setTimeout(startGame, 1500);
+              } else {
+                let winner = scores[1] > scores[2] ? 'Player 1 Wins!' :
+                             scores[2] > scores[1] ? 'Player 2 Wins!' : 'It\'s a Draw!';
+                levelMsg.innerText = mode === 'offline-multi' ? `🎉 Game Over! ${winner}` : "🎉 Game Completed!";
+              }
+            }
+
+          } else {
+            setTimeout(() => {
+              firstCard.innerHTML = '?';
+              secondCard.innerHTML = '?';
+              firstCard.classList.remove('flipped');
+              secondCard.classList.remove('flipped');
+              firstCard = secondCard = null;
+              lockBoard = false;
+
+              if (mode === 'offline-multi') {
+                playerTurn = playerTurn === 1 ? 2 : 1;
+                playerInfo.innerText = `Player ${playerTurn}'s Turn | P1: ${scores[1]} P2: ${scores[2]}`;
+              }
+
+            }, 800);
+          }
+        }
+      });
+    });
+  }
+</script>
+
+</body>
+</html>
